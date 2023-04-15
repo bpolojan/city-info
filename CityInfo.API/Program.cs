@@ -7,8 +7,10 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers(options =>
 {
-    options.ReturnHttpNotAcceptable = true;
-}).AddXmlDataContractSerializerFormatters();
+    options.ReturnHttpNotAcceptable = true; // 406 NOT Acceptable
+}).AddNewtonsoftJson().
+AddXmlDataContractSerializerFormatters();
+
 
 /* Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     Swashbuckele is an implementation of Open API or Swagger
@@ -17,7 +19,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Identitfy File type
+// Identify File extension
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 
 WebApplication app = builder.Build();
@@ -25,28 +27,28 @@ WebApplication app = builder.Build();
 //// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();   //generate Specification
-    app.UseSwaggerUI(); //generate UI
+    app.UseSwagger();   // generate Specification
+    app.UseSwaggerUI(); // generate UI
 }
 
 app.UseHttpsRedirection(); //HTTP calls are redirected to HTTPS
 
-app.UseRouting(); //find the Route
+app.UseRouting(); // Find the Route
 
 app.UseAuthorization();
 
-app.UseEndpoints //execute the Route
+app.UseEndpoints // Execute the Route
     (endpoints =>
 {
-    endpoints.MapControllers(); //Routs will be defined on attributes
+    endpoints.MapControllers(); // Routs will be defined on attributes on Controllers or EndPoints
 });
 
 app.Run();
 
 /* Services - build in DI Container
-  By adding Services, we can inject them where we want them in our Code
-  Services - seen as common consumption in an app
-  builder.Services.AddControllers(); - will enable build of Controllers
+   By adding Services, we can inject them where we want them in our Code
+   Services - seen as common consumption in an app
+   builder.Services.AddControllers(); - will enable build of Controllers
 */
 
 /* Build Pipeline
@@ -78,9 +80,9 @@ app.Run();
 */
 
 /* 406 NOT Acceptable
- If the GET request has the Accept - application/xml header
+ If the GET request has the Accept - application/XML header
  The API will return the default result - JSON
- options.ReturnHttpNotAcceptable = true will ENFORCE -> 406 NOT Acceptable, if application/xml is not supported
+ options.ReturnHttpNotAcceptable = true will ENFORCE -> 406 NOT Acceptable, if application/XML is not supported
 */
 
 /*Add XML support

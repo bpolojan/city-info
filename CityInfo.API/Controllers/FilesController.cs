@@ -8,6 +8,7 @@ namespace CityInfo.API.Controllers
     [ApiController]
     public class FilesController : ControllerBase
     {
+        //
         private readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider;
         public FilesController(FileExtensionContentTypeProvider fileExtensionContentTypeProvider)
         {
@@ -23,6 +24,7 @@ namespace CityInfo.API.Controllers
             {
                 return NotFound();
             }
+            // Identify File extension
             if (!_fileExtensionContentTypeProvider.TryGetContentType(path, out var contentType))
             {
                 contentType = "application/octet-stream";

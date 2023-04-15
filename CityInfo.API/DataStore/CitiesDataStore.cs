@@ -5,7 +5,8 @@ namespace CityInfo.API.DataStore
     public class CitiesDataStore
     {
         public List<CityDto> Cities { get; set; }
-        //implementation of the Singleton design pattern
+
+        // Singleton design pattern
         public static CitiesDataStore Current { get; } = new CitiesDataStore();
 
         public CitiesDataStore()

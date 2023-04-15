@@ -23,10 +23,19 @@ namespace CityInfo.API.Controllers
             { 
                 return NotFound();
             } 
-            return Ok(city);
+            return Ok(city); 
         }
     }
 }
 
-// ControllerRoutes can be build using Controller name - [Route("api/cities")], but the app will crush if we change the ControllerName
-// Hardcoded Name might be better
+/* ControllerRoutes
+    - can be build using Controller name - [Route("api/cities")], but the app will crush if we change the ControllerName
+    - Hardcoded Name might be better
+*/
+
+/* Binding Source Attributes - where to find the binding values
+    [FromBody]
+    [FromRoute]
+    [FromQuery]
+    [FromHead]
+*/
