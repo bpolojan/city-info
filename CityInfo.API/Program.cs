@@ -1,7 +1,9 @@
 using CityInfo.API.DataStore;
+using CityInfo.API.DbContexts;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -41,6 +43,9 @@ builder.Services.AddTransient<IMailService, CloudMailService>();
 #endif
 
 builder.Services.AddSingleton<ICitiesDataStore, CitiesDataStore>();
+
+builder.Services.AddDbContext<CityInfoContext>(dbContextOptions =>
+    dbContextOptions.UseSqlite(builder.Configuration["ConnectionStrings:CityInfoDBConnectionString"]));
 
 WebApplication app = builder.Build();
 
@@ -153,4 +158,22 @@ app.Run();
     #else
     builder.Services.AddTransient<IMailService, CloudMailService>();
     #endif
+ */
+
+/* Add the DBContext
+ * builder.Services.AddDbContext<CityInfoContext>(dbContextOptions =>
+    dbContextOptions.UseSqlite("Data Source=CityInfo.db"));
+ * 
+ * DbContext Constructor will have options. Options will be used for configuration in Services above
+ * CityInfoContext(DbContextOptions<CityInfoContext> options)
+ * 
+ * add-migration    Description
+ * update-database  
+ * 
+ * Seed Database
+ */
+
+/* Use Environment variables for safer Storage of ConnectionStrings
+ * Do not commit them into GIT
+ * Azure Key Vault  is ideal for storing secrets
  */
