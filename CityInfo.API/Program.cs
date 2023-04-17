@@ -1,5 +1,6 @@
 using CityInfo.API.DataStore;
 using CityInfo.API.DbContexts;
+using CityInfo.API.Repositories;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.StaticFiles;
@@ -47,6 +48,9 @@ builder.Services.AddSingleton<ICitiesDataStore, CitiesDataStore>();
 builder.Services.AddDbContext<CityInfoContext>(dbContextOptions =>
     dbContextOptions.UseSqlite(builder.Configuration["ConnectionStrings:CityInfoDBConnectionString"]));
 
+builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 WebApplication app = builder.Build();
 
 //// Configure the HTTP request pipeline.
