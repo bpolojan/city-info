@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using CityInfo.API.Entities;
 using CityInfo.API.Models;
 using CityInfo.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace CityInfo.API.Controllers
 {
@@ -12,6 +12,7 @@ namespace CityInfo.API.Controllers
     {
         private readonly ICityInfoRepository _cityInfoRepository;
         private readonly IMapper _mapper;
+        const int maxCitiesPageSize = 20;
 
         public CitiesController(ICityInfoRepository cityInfoRepository, IMapper mapper)
         {
@@ -19,10 +20,19 @@ namespace CityInfo.API.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CityDto>>> GetCities()
+        [HttpGet] //Filter Search Pagination
+        public async Task<ActionResult<IEnumerable<CityDto>>> GetCities([FromQuery(Name = "filterbyname")] string? name, string? searchQuery, 
+            int pageNumber = 1, int pageSize = 10)
         {
-            IEnumerable<City> cityEntities = await _cityInfoRepository.GetCitiesAsync();
+            if (pageSize > maxCitiesPageSize)
+            {
+                pageSize = maxCitiesPageSize;
+            }
+
+            var (cityEntities, paginationMetadata) = await _cityInfoRepository.GetCitiesAsync(name, searchQuery, pageNumber, pageSize);
+
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
             return Ok(_mapper.Map<IEnumerable<CityWithoutPointsOfInterestDto>>(cityEntities));
         }
 
@@ -54,4 +64,17 @@ namespace CityInfo.API.Controllers
     [FromRoute]
     [FromQuery]
     [FromHead]
+*/
+
+/* Paging - will improve performance
+ 
+ * Add Pagination Data in Headers   
+   Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+*/
+
+
+/* Deffered Execution
+    Create just the definition of the Query -> IQuerable<T> document
+    Execution is deferred until the query is iterated over
+    ToList(), ToDictionary()
 */

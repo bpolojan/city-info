@@ -1,5 +1,6 @@
 ﻿using CityInfo.API.DbContexts;
 using CityInfo.API.Entities;
+using CityInfo.API.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CityInfo.API.Repositories
@@ -8,14 +9,37 @@ namespace CityInfo.API.Repositories
     {
         private readonly CityInfoContext _context;
 
+
         public CityInfoRepository(CityInfoContext context)
         {
-            _context = context?? throw new ArgumentException(nameof(context));
+            _context = context ?? throw new ArgumentException(nameof(context));
         }
 
-        public async Task<IEnumerable<City>> GetCitiesAsync()
+        public async Task<(IEnumerable<City>, PaginationMetadata)> GetCitiesAsync(string? name, string? searchQuery, int pageNumber, int pageSize)
         {
-            return await _context.Cities.OrderBy(c => c.Name).ToListAsync();
+            IQueryable<City> query = _context.Cities;
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(x => x.Name == name.Trim());
+            }
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                query = query.Where(x => x.Name.Contains(searchQuery) || (x.Description != null && x.Description.Contains(searchQuery)));
+            }
+
+            var totalItemsCount = await query.CountAsync();
+            var paginationMetaData = new PaginationMetadata(totalItemsCount, pageSize, pageNumber);
+
+            // Pagination
+            var collectionToReturn =  await query
+                .Skip(pageSize * (pageNumber - 1))
+                .Take(pageSize)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+
+            return (collectionToReturn, paginationMetaData);
         }
 
         public async Task<City?> GetCityAsync(int cityId, bool includePointsOfInterest)
@@ -53,7 +77,7 @@ namespace CityInfo.API.Repositories
 
         public async Task AddPointOfInterestForCityAsync(int cityId, PointOfInterest pointOfInterest)
         {
-           var city = await GetCityAsync(cityId,false);
+            var city = await GetCityAsync(cityId, false);
             if (city != null)
             {
                 city.PointsOfInterest.Add(pointOfInterest);
