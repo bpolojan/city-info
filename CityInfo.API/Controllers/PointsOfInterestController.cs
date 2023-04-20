@@ -3,6 +3,7 @@ using CityInfo.API.Entities;
 using CityInfo.API.Models;
 using CityInfo.API.Repositories;
 using CityInfo.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -11,6 +12,7 @@ namespace CityInfo.API.Controllers
 {
     [Route("api/cities/{cityId}/pointsofinterest")]
     [ApiController]
+    [Authorize(Policy = "MustLiveInBerlin")]
     public class PointsOfInterestController : ControllerBase
     {
         private readonly ILogger<PointsOfInterestController> _logger;
@@ -29,10 +31,21 @@ namespace CityInfo.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PointOfInterestDto>>> GetPointsOfInterest(int cityId)
         {
-            try  // Force 500 Internal Server Error for Demo purposes
+            try  
             {
+                // Get Token User Claims in Controllers:
+                var cityName = User.Claims.FirstOrDefault(x => x.Type == "city")?.Value;
+
+                //If User City is Not Berlin - Forbidden access!
+                var isUserCity = await _cityInfoRepository.CityNameMatchesCityId(cityName, cityId);               
+                if (!isUserCity) 
+                {
+                    return Forbid(); // 403 Forbidden
+                }
+
                 if (!await _cityInfoRepository.CityExistsAsync(cityId))
                 {
+                    // Force 500 Internal Server Error for Demo purposes
                     //throw new Exception("Exception sample");
                     _logger.LogInformation($"City {cityId} was not found");
                     return NotFound();

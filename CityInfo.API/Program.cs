@@ -2,10 +2,11 @@ using CityInfo.API.DataStore;
 using CityInfo.API.DbContexts;
 using CityInfo.API.Repositories;
 using CityInfo.API.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -51,6 +52,36 @@ builder.Services.AddDbContext<CityInfoContext>(dbContextOptions =>
 builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
+{
+    //Token Validation Definition  - ExpirationTime is automatically validated
+    options.TokenValidationParameters = new()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Authentication:Issuer"],       // We accept Tokens only created by this Authority
+        ValidAudience = builder.Configuration["Authentication:Audience"],   // We accept Tokens only for this Audience
+        IssuerSigningKey = new SymmetricSecurityKey(                        // Singing Key should be identical
+            Encoding.ASCII.GetBytes(builder.Configuration["Authentication:SecretForKey"]))
+    };
+});
+
+// AuthorizationPolicies - will combine conditions
+// Will return 403 Forbidden if the Conditions are not met
+// Apply Policy at Controler Level
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("MustLiveInBerlin", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("city", "Berlin");
+    }); 
+});
+
+// For Enterprise Apps use Oauth2 and OpenIDConnect
+
 WebApplication app = builder.Build();
 
 //// Configure the HTTP request pipeline.
@@ -63,6 +94,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection(); //HTTP calls are redirected to HTTPS
 
 app.UseRouting(); // Find the Route
+
+app.UseAuthentication(); // Before EndPoint is selected check if the User is Authenticated at all
 
 app.UseAuthorization();
 
